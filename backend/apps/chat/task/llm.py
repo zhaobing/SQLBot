@@ -12,6 +12,7 @@ import orjson
 import pandas as pd
 import requests
 import sqlparse
+from loguru import logger
 from langchain.chat_models.base import BaseChatModel
 from langchain_community.utilities import SQLDatabase
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage, BaseMessageChunk
@@ -414,7 +415,7 @@ class LLMService:
             if settings.TABLE_EMBEDDING_ENABLED and (
                     not self.current_assistant or (self.current_assistant and self.current_assistant.type != 1)):
                 _ds_list = get_ds_embedding(_session, self.current_user, _ds_list, self.out_ds_instance,
-                                      self.chat_question.question, self.current_assistant)
+                                            self.chat_question.question, self.current_assistant)
                 # yield {'content': '{"id":' + str(ds.get('id')) + '}'}
 
             _ds_list_dict = []
@@ -908,6 +909,7 @@ class LLMService:
 
     def run_task(self, in_chat: bool = True, stream: bool = True,
                  finish_step: ChatFinishStep = ChatFinishStep.GENERATE_CHART):
+        logger.debug("zg:will run task")
         json_result: Dict[str, Any] = {'success': True}
         _session = None
         try:

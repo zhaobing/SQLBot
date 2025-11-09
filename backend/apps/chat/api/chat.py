@@ -4,6 +4,7 @@ import traceback
 
 import orjson
 import pandas as pd
+from loguru import logger
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import and_, select
@@ -147,8 +148,10 @@ async def stream_sql(session: SessionDep, current_user: CurrentUser, request_que
     """
 
     try:
+        logger.debug(f"Request question: {request_question}")
         llm_service = await LLMService.create(session, current_user, request_question, current_assistant,
                                               embedding=True)
+
         llm_service.init_record(session=session)
         llm_service.run_task_async()
     except Exception as e:

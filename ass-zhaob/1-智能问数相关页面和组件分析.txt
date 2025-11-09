@@ -1,0 +1,64 @@
+ 智能问数的交互页面主要对应项目中的以下前端页面和组件：
+
+  智能问数相关页面和组件
+
+  主要页面
+   1. `/frontend/src/views/chat/index.vue` - 智能问数主页面，包含聊天界面、历史记录、输入框等完整功能
+   2. `/frontend/src/views/chat/ChatListContainer.vue` - 聊天历史列表容器
+   3. `/frontend/src/views/chat/ChatCreator.vue` - 创建新聊天会话
+
+  核心组件
+   1. `/frontend/src/views/chat/ChatRow.vue` - 聊天消息行组件，显示用户和AI的消息
+   2. `/frontend/src/views/chat/answer/ChartAnswer.vue` - 图表回答组件，处理SQL查询结果和图表展示
+   3. `/frontend/src/views/chat/answer/AnalysisAnswer.vue` - 数据分析回答组件
+   4. `/frontend/src/views/chat/answer/PredictAnswer.vue` - 数据预测回答组件
+   5. `/frontend/src/views/chat/chat-block/ChartBlock.vue` - 图表块组件，展示可视化图表
+   6. `/frontend/src/views/chat/component/DisplayChartBlock.vue` - 图表显示组件
+   7. `/frontend/src/views/chat/RecommendQuestion.vue` - 推荐问题组件
+
+  辅助组件
+   1. `/frontend/src/views/chat/UserChat.vue` - 用户消息显示组件
+   2. `/frontend/src/views/chat/ErrorInfo.vue` - 错误信息显示组件
+   3. `/frontend/src/views/chat/ChatToolBar.vue` - 聊天工具栏组件
+
+  Vue和页面工作流程
+
+  1. 路由配置
+   - `/frontend/src/router/index.ts` - 定义了路由结构，/chat 路由对应智能问数页面 (chat/index.vue)
+
+  2. 应用启动流程
+   1. `/frontend/src/main.ts` - 应用入口，初始化Vue实例，注册Pinia状态管理、路由、国际化等
+   2. `/frontend/src/App.vue` - 根组件，使用Element Plus配置提供器和路由视图
+
+  3. 智能问数页面工作流程
+   1. 页面加载 (chat/index.vue)：
+      - 获取聊天历史列表
+      - 显示欢迎界面或历史聊天记录
+      - 用户可以创建新聊天
+
+   2. 消息交互流程：
+      - 用户在输入框输入问题
+      - 点击发送按钮触发 sendMessage() 方法
+      - 创建新的聊天记录对象
+      - 通过API发送请求到后端
+
+   3. 后端响应处理：
+      - 使用SSE（Server-Sent Events）接收后端流式响应
+      - 解析不同类型的数据（SQL查询、图表配置、完成状态等）
+      - 实时更新界面显示
+
+   4. 结果显示：
+      - SQL查询结果通过 ChartAnswer 组件处理
+      - 图表展示通过 ChartBlock 组件呈现
+      - 支持多种图表类型（柱状图、折线图、饼图等）
+      - 可导出数据为Excel或图片
+
+  4. 状态管理
+   - `/frontend/src/stores/assistant.ts` - 使用Pinia管理AI助手相关状态，如会话ID、令牌、在线状态等
+
+  5. 核心功能
+   - 聊天历史管理 - 左侧边栏显示历史会话
+   - 数据可视化 - 将SQL查询结果转换为图表
+   - 推荐问题 - 自动生成相关问题
+   - 多类型展示 - 支持表格、图表、分析等多种展示方式
+   - 嵌入式支持 - 可以嵌入到第三方系统中

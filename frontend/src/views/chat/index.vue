@@ -71,7 +71,7 @@
         <template #reference>
           <el-button link type="primary" class="icon-btn" @click="showSideBar">
             <el-icon>
-              <icon_sidebar_outlined />
+              <icon_sidebar_outlined/>
             </el-icon>
           </el-button>
         </template>
@@ -121,7 +121,7 @@
       <el-tooltip effect="dark" :offset="8" :content="t('qa.new_chat')" placement="bottom">
         <el-button link type="primary" class="icon-btn" @click="createNewChatSimple">
           <el-icon>
-            <icon_new_chat_outlined />
+            <icon_new_chat_outlined/>
           </el-icon>
         </el-button>
       </el-tooltip>
@@ -138,11 +138,13 @@
           <div class="welcome-content">
             <template v-if="isCompletePage">
               <div class="greeting">
-                <img height="32" width="32" v-if="loginBg" :src="loginBg" alt="" />
+                <img height="32" width="32" v-if="loginBg" :src="loginBg" alt=""/>
                 <el-icon size="32" v-else
-                  ><custom_small v-if="appearanceStore.themeColor !== 'default'"></custom_small>
+                >
+                  <custom_small v-if="appearanceStore.themeColor !== 'default'"></custom_small>
                   <LOGO_fold v-else></LOGO_fold
-                ></el-icon>
+                  >
+                </el-icon>
                 {{ t('qa.greeting') }}
               </div>
               <div class="sub">
@@ -160,7 +162,7 @@
                 alt=""
               />
               <el-icon v-else size="32">
-                <logo_fold />
+                <logo_fold/>
               </el-icon>
               <div class="i-am">{{ welcome }}</div>
               <div class="i-can">{{ welcomeDesc }}</div>
@@ -175,7 +177,7 @@
             >
               <span class="inner-icon">
                 <el-icon>
-                  <icon_new_chat_outlined />
+                  <icon_new_chat_outlined/>
                 </el-icon>
               </span>
               {{ t('qa.start_sqlbot') }}
@@ -192,9 +194,11 @@
               alt=""
             />
             <el-icon size="30" v-else
-              ><custom_small v-if="appearanceStore.themeColor !== 'default'"></custom_small>
+            >
+              <custom_small v-if="appearanceStore.themeColor !== 'default'"></custom_small>
               <LOGO_fold v-else></LOGO_fold
-            ></el-icon>
+              >
+            </el-icon>
             <span style="margin-left: 12px">{{ appearanceStore.name }}</span>
           </div>
         </div>
@@ -231,7 +235,7 @@
                   @stop="onChatStop"
                   @loading-over="loadingOver"
                 />
-                <UserChat v-if="message.role === 'user'" :message="message" />
+                <UserChat v-if="message.role === 'user'" :message="message"/>
                 <template v-if="message.role === 'assistant' && !message.first_chat">
                   <ChartAnswer
                     v-if="
@@ -252,7 +256,7 @@
                     @error="onChartAnswerError"
                     @stop="onChatStop"
                   >
-                    <ErrorInfo :error="message.record?.error" class="error-container" />
+                    <ErrorInfo :error="message.record?.error" class="error-container"/>
                     <template #tool>
                       <ChatToolBar v-if="!message.isTyping" :message="message">
                         <div class="tool-btns">
@@ -269,7 +273,7 @@
                               @click="askAgain(message)"
                             >
                               <el-icon size="18">
-                                <icon_replace_outlined />
+                                <icon_replace_outlined/>
                               </el-icon>
                             </el-button>
                           </el-tooltip>
@@ -284,7 +288,7 @@
                               >
                                 <span class="tool-btn-inner">
                                   <el-icon size="18">
-                                    <icon_screen_outlined />
+                                    <icon_screen_outlined/>
                                   </el-icon>
                                   <span class="btn-text">
                                     {{ t('chat.data_analysis') }}
@@ -301,7 +305,7 @@
                               >
                                 <span class="tool-btn-inner">
                                   <el-icon size="18">
-                                    <icon_start_outlined />
+                                    <icon_start_outlined/>
                                   </el-icon>
                                   <span class="btn-text">
                                     {{ t('chat.data_predict') }}
@@ -342,9 +346,9 @@
                     @error="onAnalysisAnswerError"
                     @stop="onChatStop"
                   >
-                    <ErrorInfo :error="message.record?.error" class="error-container" />
+                    <ErrorInfo :error="message.record?.error" class="error-container"/>
                     <template #tool>
-                      <ChatToolBar v-if="!message.isTyping" :message="message" />
+                      <ChatToolBar v-if="!message.isTyping" :message="message"/>
                     </template>
                   </AnalysisAnswer>
                   <PredictAnswer
@@ -363,9 +367,9 @@
                     @error="onPredictAnswerError"
                     @stop="onChatStop"
                   >
-                    <ErrorInfo :error="message.record?.error" class="error-container" />
+                    <ErrorInfo :error="message.record?.error" class="error-container"/>
                     <template #tool>
-                      <ChatToolBar v-if="!message.isTyping" :message="message" />
+                      <ChatToolBar v-if="!message.isTyping" :message="message"/>
                     </template>
                   </PredictAnswer>
                 </template>
@@ -414,21 +418,21 @@
             @click.stop="sendMessage"
           >
             <el-icon size="16">
-              <icon_send_filled />
+              <icon_send_filled/>
             </el-icon>
           </el-button>
         </div>
       </el-footer>
     </el-container>
 
-    <ChatCreator v-if="isCompletePage" ref="chatCreatorRef" @on-chat-created="onChatCreatedQuick" />
-    <ChatCreator ref="hiddenChatCreatorRef" hidden @on-chat-created="onChatCreatedQuick" />
+    <ChatCreator v-if="isCompletePage" ref="chatCreatorRef" @on-chat-created="onChatCreatedQuick"/>
+    <ChatCreator ref="hiddenChatCreatorRef" hidden @on-chat-created="onChatCreatedQuick"/>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
-import { Chat, chatApi, ChatInfo, type ChatMessage, ChatRecord } from '@/api/chat'
+import {computed, nextTick, onMounted, ref} from 'vue'
+import {Chat, chatApi, ChatInfo, type ChatMessage, ChatRecord} from '@/api/chat'
 import ChatRow from './ChatRow.vue'
 import ChartAnswer from './answer/ChartAnswer.vue'
 import AnalysisAnswer from './answer/AnalysisAnswer.vue'
@@ -439,9 +443,9 @@ import ChatListContainer from './ChatListContainer.vue'
 import ChatCreator from '@/views/chat/ChatCreator.vue'
 import ErrorInfo from './ErrorInfo.vue'
 import ChatToolBar from './ChatToolBar.vue'
-import { dsTypeWithImg } from '@/views/ds/js/ds-type'
-import { useI18n } from 'vue-i18n'
-import { find, forEach } from 'lodash-es'
+import {dsTypeWithImg} from '@/views/ds/js/ds-type'
+import {useI18n} from 'vue-i18n'
+import {find, forEach} from 'lodash-es'
 import custom_small from '@/assets/svg/logo-custom_small.svg'
 import LOGO_fold from '@/assets/LOGO-fold.svg'
 import icon_new_chat_outlined from '@/assets/svg/icon_new_chat_outlined.svg'
@@ -451,13 +455,14 @@ import icon_screen_outlined from '@/assets/svg/icon_screen_outlined.svg'
 import icon_start_outlined from '@/assets/svg/icon_start_outlined.svg'
 import logo_fold from '@/assets/svg/logo-custom_small.svg'
 import icon_send_filled from '@/assets/svg/icon_send_filled.svg'
-import { useAssistantStore } from '@/stores/assistant'
-import { onClickOutside } from '@vueuse/core'
-import { useAppearanceStoreWithOut } from '@/stores/appearance'
-import { useUserStore } from '@/stores/user'
-import { debounce } from 'lodash-es'
+import {useAssistantStore} from '@/stores/assistant'
+import {onClickOutside} from '@vueuse/core'
+import {useAppearanceStoreWithOut} from '@/stores/appearance'
+import {useUserStore} from '@/stores/user'
+import {debounce} from 'lodash-es'
 
 import router from '@/router'
+
 const userStore = useUserStore()
 const props = defineProps<{
   startChatDsId?: number
@@ -485,7 +490,7 @@ const customName = computed(() => {
   if (!isCompletePage.value && props.pageEmbedded) return props.appName
   return ''
 })
-const { t } = useI18n()
+const {t} = useI18n()
 
 const inputMessage = ref('')
 
@@ -584,8 +589,8 @@ const handleScroll = (val: any) => {
     !scrollTime &&
     isTyping.value &&
     scrollTopVal + 30 <
-      innerRef.value!.clientHeight -
-        (document.querySelector('.chat-record-list')!.clientHeight - 20)
+    innerRef.value!.clientHeight -
+    (document.querySelector('.chat-record-list')!.clientHeight - 20)
   ) {
     scrollTime = setInterval(() => {
       scrollBottom()
@@ -674,6 +679,7 @@ function onChatRenamed(chat: Chat) {
 }
 
 const chatListSideBarShow = ref<boolean>(true)
+
 function hideSideBar() {
   if (!isCompletePage.value && !props.pageEmbedded) {
     floatPopoverVisible.value = false
@@ -728,6 +734,7 @@ function quickAsk(question: string) {
 
 const chartAnswerRef = ref()
 const getRecommendQuestionsLoading = ref(false)
+
 async function onChartAnswerFinish(id: number) {
   getRecommendQuestionsLoading.value = true
   loading.value = false
@@ -750,6 +757,7 @@ function onChatStop() {
   isTyping.value = false
   console.debug('onChatStop')
 }
+
 const assistantPrepareSend = async () => {
   if (
     !isCompletePage.value &&
@@ -775,6 +783,7 @@ const sendMessage = async ($event: any = {}) => {
       scrollBottom()
     }, 300)
   }
+  console.log("zhaob-test-sendMsg")
   await assistantPrepareSend()
   const currentRecord = new ChatRecord()
   currentRecord.create_time = new Date()
@@ -820,6 +829,7 @@ async function onAnalysisAnswerFinish(id: number) {
   console.debug(id)
   //await getRecommendQuestions(id)
 }
+
 function onAnalysisAnswerError() {
   loading.value = false
   isTyping.value = false
@@ -880,6 +890,7 @@ async function onPredictAnswerFinish(id: number) {
   console.debug('onPredictAnswerFinish: ', id)
   //await getRecommendQuestions(id)
 }
+
 function onPredictAnswerError() {
   loading.value = false
   isTyping.value = false
@@ -986,6 +997,7 @@ function stop(func?: (...p: any[]) => void, ...param: any[]) {
     func(...param)
   }
 }
+
 const showFloatPopover = () => {
   if (!isCompletePage.value && !floatPopoverVisible.value) {
     floatPopoverVisible.value = true
@@ -1047,11 +1059,13 @@ onMounted(() => {
   position: relative;
 
   border-radius: 12px;
+
   .assistant-popover-sidebar {
     button {
       display: none;
     }
   }
+
   .hidden-sidebar-btn {
     z-index: 1;
     position: absolute;
@@ -1070,6 +1084,7 @@ onMounted(() => {
     --ed-button-hover-text-color: var(--ed-button-text-color);
     --ed-button-active-text-color: var(--ed-button-text-color);
     --ed-button-hover-link-text-color: var(--ed-button-text-color);
+
     &:hover {
       background: rgba(31, 35, 41, 0.1);
     }
@@ -1096,6 +1111,7 @@ onMounted(() => {
       border-radius: 12px;
     }
   }
+
   .assistant-chat-main {
     padding: 0 0 20px 0;
   }
@@ -1233,6 +1249,7 @@ onMounted(() => {
     &:hover {
       background: rgba(31, 35, 41, 0.1);
     }
+
     &:active {
       background: rgba(31, 35, 41, 0.1);
     }
@@ -1349,6 +1366,7 @@ onMounted(() => {
     height: 100% !important;
     margin-top: 0 !important;
   }
+
   .ed-drawer__body {
     padding: 0;
   }
@@ -1366,15 +1384,18 @@ onMounted(() => {
   border: 1px solid rgba(222, 224, 227, 1);
   border-radius: 6px;
 }
+
 .embedded-history-hidden {
   display: none !important;
 }
+
 .show-history_icon {
   cursor: pointer;
   position: absolute;
   top: 18px;
   left: 16px;
   z-index: 199;
+
   &::after {
     content: '';
     background-color: #1f23291a;
