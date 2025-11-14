@@ -904,12 +904,13 @@ class LLMService:
 
     def run_task_cache(self, in_chat: bool = True, stream: bool = True,
                        finish_step: ChatFinishStep = ChatFinishStep.GENERATE_CHART):
+        logger.debug("zg:exec:run_task_cache")
         for chunk in self.run_task(in_chat, stream, finish_step):
             self.chunk_list.append(chunk)
 
     def run_task(self, in_chat: bool = True, stream: bool = True,
                  finish_step: ChatFinishStep = ChatFinishStep.GENERATE_CHART):
-        logger.debug("zg:will run task")
+        logger.debug("zg:exec:run_task")
         json_result: Dict[str, Any] = {'success': True}
         _session = None
         try:

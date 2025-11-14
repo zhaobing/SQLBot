@@ -1,0 +1,263 @@
+
+
+
+<query-sql>
+      SELECT rental_ana.inventory_id, rental_count, i.film_id, f.title
+      FROM (SELECT inventory_id, COUNT(*) AS rental_count
+            FROM rental r
+            GROUP BY inventory_id
+            ORDER BY rental_count ASC
+            LIMIT 5) rental_ana
+            LEFT JOIN inventory i ON rental_ana.inventory_id = i.inventory_id
+            LEFT JOIN film f ON i.film_id = f.film_id;
+</query-sql>
+
+<background-info>
+
+      <TableSchema>
+            <Tabel>
+                  -- auto-generated definition
+                  CREATE TABLE inventory
+                  (
+                  inventory_id mediumint UNSIGNED AUTO_INCREMENT
+                        PRIMARY KEY,
+                  film_id      smallint UNSIGNED                   NOT NULL,
+                  store_id     tinyint UNSIGNED                    NOT NULL,
+                  last_update  timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                  CONSTRAINT fk_inventory_film
+                        FOREIGN KEY (film_id) REFERENCES film (film_id)
+                              ON UPDATE CASCADE,
+                  CONSTRAINT fk_inventory_store
+                        FOREIGN KEY (store_id) REFERENCES store (store_id)
+                              ON UPDATE CASCADE
+                  );
+
+                  CREATE INDEX idx_fk_film_id
+                  ON inventory (film_id);
+
+                  CREATE INDEX idx_store_id_film_id
+                  ON inventory (store_id, film_id);
+            </Tabel>
+
+            <Tabel>
+                  -- auto-generated definition
+                  CREATE TABLE rental
+                  (
+                  rental_id    int AUTO_INCREMENT
+                        PRIMARY KEY,
+                  rental_date  datetime                            NOT NULL,
+                  inventory_id mediumint UNSIGNED                  NOT NULL,
+                  customer_id  smallint UNSIGNED                   NOT NULL,
+                  return_date  datetime                            NULL,
+                  staff_id     tinyint UNSIGNED                    NOT NULL,
+                  last_update  timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                  CONSTRAINT rental_date
+                        UNIQUE (rental_date, inventory_id, customer_id),
+                  CONSTRAINT fk_rental_customer
+                        FOREIGN KEY (customer_id) REFERENCES customer (customer_id)
+                              ON UPDATE CASCADE,
+                  CONSTRAINT fk_rental_inventory
+                        FOREIGN KEY (inventory_id) REFERENCES inventory (inventory_id)
+                              ON UPDATE CASCADE,
+                  CONSTRAINT fk_rental_staff
+                        FOREIGN KEY (staff_id) REFERENCES staff (staff_id)
+                              ON UPDATE CASCADE
+                  );
+
+                  CREATE INDEX idx_fk_customer_id
+                  ON rental (customer_id);
+
+                  CREATE INDEX idx_fk_inventory_id
+                  ON rental (inventory_id);
+
+                  CREATE INDEX idx_fk_staff_id
+                  ON rental (staff_id);
+            </Tabel>
+
+
+            <Tabel>
+                  -- auto-generated definition
+                  CREATE TABLE film
+                  (
+                  film_id              smallint UNSIGNED AUTO_INCREMENT
+                        PRIMARY KEY,
+                  title                varchar(128)                                                            NOT NULL,
+                  description          text                                                                    NULL,
+                  release_year         year                                                                    NULL,
+                  language_id          tinyint UNSIGNED                                                        NOT NULL,
+                  original_language_id tinyint UNSIGNED                                                        NULL,
+                  rental_duration      tinyint UNSIGNED                        DEFAULT '3'                     NOT NULL,
+                  rental_rate          decimal(4, 2)                           DEFAULT 4.99                    NOT NULL,
+                  length               smallint UNSIGNED                                                       NULL,
+                  replacement_cost     decimal(5, 2)                           DEFAULT 19.99                   NOT NULL,
+                  rating               enum ('G', 'PG', 'PG-13', 'R', 'NC-17') DEFAULT 'G'                     NULL,
+                  special_features     set ('Trailers', 'Commentaries', 'Deleted Scenes', 'Behind the Scenes') NULL,
+                  last_update          timestamp                               DEFAULT CURRENT_TIMESTAMP       NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                  CONSTRAINT fk_film_language
+                        FOREIGN KEY (language_id) REFERENCES language (language_id)
+                              ON UPDATE CASCADE,
+                  CONSTRAINT fk_film_language_original
+                        FOREIGN KEY (original_language_id) REFERENCES language (language_id)
+                              ON UPDATE CASCADE
+                  );
+
+                  CREATE INDEX idx_fk_language_id
+                  ON film (language_id);
+
+                  CREATE INDEX idx_fk_original_language_id
+                  ON film (original_language_id);
+
+                  CREATE INDEX idx_title
+                  ON film (title);
+
+            </Tabel>
+
+      </TableSchema>
+
+      <cost-info>
+                        {
+            "query_block": {
+            "select_id": 1,
+            "cost_info": {
+                  "query_cost": "6.56"
+            },
+            "nested_loop": [
+                  {
+                  "table": {
+                  "table_name": "rental_ana",
+                  "access_type": "ALL",
+                  "rows_examined_per_scan": 5,
+                  "rows_produced_per_join": 5,
+                  "filtered": "100.00",
+                  "cost_info": {
+                        "read_cost": "2.56",
+                        "eval_cost": "0.50",
+                        "prefix_cost": "3.06",
+                        "data_read_per_join": "120"
+                  },
+                  "used_columns": [
+                        "inventory_id",
+                        "rental_count"
+                  ],
+                  "materialized_from_subquery": {
+                        "using_temporary_table": true,
+                        "dependent": false,
+                        "cacheable": true,
+                        "query_block": {
+                        "select_id": 2,
+                        "cost_info": {
+                        "query_cost": "1694.70"
+                        },
+                        "ordering_operation": {
+                        "using_temporary_table": true,
+                        "using_filesort": true,
+                        "grouping_operation": {
+                              "using_filesort": false,
+                              "table": {
+                              "table_name": "r",
+                              "access_type": "index",
+                              "possible_keys": [
+                              "rental_date",
+                              "idx_fk_inventory_id"
+                              ],
+                              "key": "idx_fk_inventory_id",
+                              "used_key_parts": [
+                              "inventory_id"
+                              ],
+                              "key_length": "3",
+                              "rows_examined_per_scan": 16008,
+                              "rows_produced_per_join": 16008,
+                              "filtered": "100.00",
+                              "using_index": true,
+                              "cost_info": {
+                              "read_cost": "93.90",
+                              "eval_cost": "1600.80",
+                              "prefix_cost": "1694.70",
+                              "data_read_per_join": "500K"
+                              },
+                              "used_columns": [
+                              "rental_id",
+                              "inventory_id"
+                              ]
+                              }
+                        }
+                        }
+                        }
+                  }
+                  }
+                  },
+                  {
+                  "table": {
+                  "table_name": "i",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                        "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                        "inventory_id"
+                  ],
+                  "key_length": "3",
+                  "ref": [
+                        "rental_ana.inventory_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 5,
+                  "filtered": "100.00",
+                  "cost_info": {
+                        "read_cost": "1.25",
+                        "eval_cost": "0.50",
+                        "prefix_cost": "4.81",
+                        "data_read_per_join": "80"
+                  },
+                  "used_columns": [
+                        "inventory_id",
+                        "film_id"
+                  ]
+                  }
+                  },
+                  {
+                  "table": {
+                  "table_name": "f",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                        "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                        "film_id"
+                  ],
+                  "key_length": "2",
+                  "ref": [
+                        "sakila.i.film_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 5,
+                  "filtered": "100.00",
+                  "cost_info": {
+                        "read_cost": "1.25",
+                        "eval_cost": "0.50",
+                        "prefix_cost": "6.56",
+                        "data_read_per_join": "2K"
+                  },
+                  "used_columns": [
+                        "film_id",
+                        "title"
+                  ]
+                  }
+                  }
+            ]
+            }
+            }
+      </cost-info>
+
+
+</background-info>
+
+
+上述sql在查询租借数量最少的电影top5,给出电影名称与租借次数
+1. 原始查询语句在<query-sql>标签中
+2. <background-info>标签提供了背景信息
+3. 其中<TableSchema>标签中包含了多个表的表结构，<Tabel>标签代表其中1个表的表结构。
+4. <cost-info>标签代表了原始查询语句的查询计划与预估成本
+请优化这个sql提高查询效率,并且不改变原有的语义,如果没有优化空间，则回复没有优化空间
