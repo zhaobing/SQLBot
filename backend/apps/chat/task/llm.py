@@ -906,6 +906,7 @@ class LLMService:
                        finish_step: ChatFinishStep = ChatFinishStep.GENERATE_CHART):
         logger.debug("zg:exec:run_task_cache")
         for chunk in self.run_task(in_chat, stream, finish_step):
+            logger.debug(f"zg:chunk_list_item:{chunk}")
             self.chunk_list.append(chunk)
 
     def run_task(self, in_chat: bool = True, stream: bool = True,
@@ -928,7 +929,7 @@ class LLMService:
                                                                            oid, ds_id)
                 self.init_messages()
 
-            # return id
+            # return
             if in_chat:
                 yield 'data:' + orjson.dumps({'type': 'id', 'id': self.get_record().id}).decode() + '\n\n'
             if not stream:
