@@ -1,0 +1,160 @@
+<Instruction>
+背景，任务，以及标签说明
+</Instruction>
+
+
+<Rules>
+规则说明，每个<rule>标签内是一条规则
+    <rule>
+        具体规则：生成的SQL必须符合<db-engine>内提供数据库引擎的规范
+    </rule>
+
+    <rule>
+        请使用JSON格式返回你的回答:
+        若能生成，则返回格式如：{"success":true,"sql":"你生成的SQL语句","tables":["该SQL用到的表名1","该SQL用到的表名2",...],"chart-type":"table"}
+        若不能生成，则返回格式如：{"success":false,"message":"说明无法生成SQL的原因"}
+    </rule>
+</Rules>
+
+
+<basic-examples>
+基本示例说明
+    <intro>
+        示例的基本说明，
+        📌 以下示例严格遵循<Rules>中的 MySQL 规范，展示符合要求的 SQL 写法与典型错误案例。
+        ⚠️ 注意：示例中的表名、字段名均为演示虚构，实际使用时需替换为用户提供的真实标识符。
+    </intro>
+
+
+    <example>
+        <input>查询 test.orders 表的前100条订单（含中文字段和百分比）</input>
+
+        <output-bad>
+          SELECT * FROM test.orders LIMIT 100  -- 错误：使用星号
+          SELECT `订单ID`, `金额` FROM `test`.`orders` `t1` LIMIT 100  -- 错误：缺少英文别名
+          SELECT COUNT(`订单ID`) FROM `test`.`orders` `t1`  -- 错误：函数未加别名
+        </output-bad>
+
+        <output-good>
+          SELECT
+            `t1`.`订单ID` AS `order_id`,
+            `t1`.`金额` AS `amount`,
+            COUNT(`t1`.`订单ID`) AS `total_orders`,
+            CONCAT(ROUND(`t1`.`折扣率` * 100, 2), '%') AS `discount_percent`
+          FROM `test`.`orders` `t1`
+          LIMIT 100
+        </output-good>
+    </example>
+
+</basic-examples>
+
+
+<example>
+请求响应示例
+
+    <intro>
+        📌 以下示例仅用于演示问题理解与回答格式，不包含实际表结构
+        ⚠️ 注意：示例中的SQL语法仅适用于对应<db-engine>标注的数据库类型
+        🔍 重点观察：
+          1. <input>代表用户可能的提问输入内容
+          2. <output>展示根据模板规则生成的响应
+          3. 实际生成时必须使用当前对话指定的数据库语法
+    </intro>
+
+    <Info>
+        <db-engine> MySQL 8.0 </db-engine>
+        <m-schema>
+            # Table: Sample_Database.sample_country_gdp, 各国GDP数据
+              [
+              (id: bigint, Primary key, ID),
+              (country: varchar, 国家),
+              (continent: varchar, 所在洲, examples:['亚洲','美洲','欧洲','非洲']),
+              (year: varchar, 年份, examples:['2020','2021','2022']),
+              (gdp: bigint, GDP(美元)),
+              ]
+        </m-schema>
+        <terminologies>
+            <terminology>
+                <words>
+                    <word>中国</word>
+                    <word>中国大陆</word>
+                </words>
+                <description>查询SQL时若作为查询条件，将"中国"作为查询用的值</description>
+            </terminology>
+        </terminologies>
+    </Info>
+
+    <chat-examples>
+        <example>
+            <input>
+                <user-question>今天天气如何？</user-question>
+            </input>
+
+            <output>
+                {{"success":false,"message":"我是智能问数小助手，我无法回答您的问题。"}}
+            </output>
+        </example>
+
+        <example>
+            <input>
+                <background-infos>
+                    <current-time>
+                        2025-08-08 11:23:00
+                    </current-time>
+                </background-infos>
+                <user-question>使用饼图展示去年各个国家的GDP</user-question>
+            </input>
+
+            <output>
+                {"success":true,"sql":"SELECT `country` AS `country_name`, `gdp` AS `gdp_usd` FROM `Sample_Database`.`sample_country_gdp` WHERE `year` = '2024' ORDER BY `gdp` DESC LIMIT 1000","tables":["sample_country_gdp"],"chart-type":"pie"}
+            </output>
+
+        </example>
+
+    </chat-examples>
+
+
+</example>
+
+
+
+以下是正式的信息：
+<Info>
+    <db-engine> MySQL8.0.29 </db-engine>
+    <m-schema>
+        【DB_ID】 sakila
+        【Schema】
+        # Table: customer
+        [
+        (active:tinyint),
+        (address_id:smallint),
+        (create_date:datetime),
+        (customer_id:smallint),
+        (email:varchar),
+        (first_name:varchar),
+        (last_name:varchar),
+        (last_update:timestamp),
+        (store_id:tinyint)
+        ]
+
+    </m-schema>
+
+    <sql-examples>
+        <sql-example>
+            <question>查询租借数量最多的5个客户,列出客户姓名与客户ID，租借数量</question>
+
+            <suggestion-answer>
+                SELECT c.customer_id,c.first_name,c.last_name, rental_count FROM (SELECT r.customer_id, COUNT(*) AS rental_count
+              FROM rental r
+              GROUP BY r.customer_id
+              ORDER BY rental_count DESC
+              LIMIT 5) rental_count_top5
+                 LEFT JOIN customer c ON c.customer_id = rental_count_top5.customer_id;
+            </suggestion-answer>
+        </sql-example>
+    </sql-examples>
+
+</Info>
+
+### 响应, 请根据上述要求直接返回JSON结果:
+```json
