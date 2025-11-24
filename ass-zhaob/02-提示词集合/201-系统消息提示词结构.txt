@@ -1,5 +1,5 @@
 <Instruction>
-背景，任务，以及标签说明
+角色设定，背景，任务，以及标签说明
 </Instruction>
 
 
