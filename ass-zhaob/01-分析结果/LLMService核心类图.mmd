@@ -1,0 +1,252 @@
+classDiagram
+    %% LLMService 核心类
+    class LLMService {
+        -ds: CoreDatasource
+        -chat_question: ChatQuestion
+        -record: ChatRecord
+        -config: LLMConfig
+        -llm: BaseChatModel
+        -sql_message: List[BaseMessage]
+        -chart_message: List[BaseMessage]
+        -current_user: CurrentUser
+        -current_assistant: CurrentAssistant
+        -generate_sql_logs: List[ChatLog]
+        -generate_chart_logs: List[ChatLog]
+        -current_logs: Dict[OperationEnum, ChatLog]
+        -chunk_list: List[str]
+        -future: Future
+
+        +__init__(session, current_user, chat_question, current_assistant?, no_reasoning?, embedding?, config?)
+        +create() LLMService
+        +is_running(timeout?) bool
+        +init_messages()
+        +init_record(session) ChatRecord
+        +generate_analysis(session) Iterator[Dict]
+        +generate_predict(session) Iterator[Dict]
+        +generate_recommend_questions_task(session) Iterator[Dict]
+        +select_datasource(session) Iterator[Dict]
+        +generate_sql(session) Iterator[Dict]
+        +generate_with_sub_sql(session, sql, sub_mappings) str
+        +generate_assistant_dynamic_sql(session, sql, tables) Dict
+        +build_table_filter(session, sql, filters) str
+        +generate_filter(session, sql, tables) str
+        +generate_assistant_filter(session, sql, tables) str
+        +generate_chart(session, chart_type?) Iterator[Dict]
+        +run_task(in_chat?, stream?, finish_step?) Iterator[Dict]
+        +execute_sql(sql) Dict
+    }
+
+    %% 配置类
+    class LLMConfig {
+        +model_id: Optional[int]
+        +model_type: str
+        +model_name: str
+        +api_key: Optional[str]
+        +api_base_url: Optional[str]
+        +additional_params: Dict[str, Any]
+        +__hash__()
+    }
+
+    %% 问题模型类
+    class AiModelQuestion {
+        +question: str
+        +ai_modal_id: int
+        +ai_modal_name: str
+        +engine: str
+        +db_schema: str
+        +sql: str
+        +rule: str
+        +fields: str
+        +data: str
+        +lang: str
+        +filter: list
+        +sub_query: Optional[list[dict]]
+        +terminologies: str
+        +data_training: str
+        +custom_prompt: str
+        +error_msg: str
+
+        +sql_sys_question(db_type, enable_query_limit?) str
+        +sql_user_question(current_time) str
+        +chart_sys_question() str
+        +chart_user_question(chart_type?) str
+        +analysis_sys_question() str
+        +analysis_user_question() str
+        +predict_sys_question() str
+        +predict_user_question() str
+        +datasource_sys_question() str
+        +datasource_user_question(datasource_list) str
+        +guess_sys_question() str
+        +guess_user_question(old_questions) str
+        +filter_sys_question() str
+        +filter_user_question() str
+        +dynamic_sys_question() str
+        +dynamic_user_question() str
+    }
+
+    %% 聊天问题类
+    class ChatQuestion {
+        +chat_id: int
+    }
+
+    %% 聊天记录类
+    class ChatRecord {
+        +id: int
+        +chat_id: int
+        +ai_modal_id: int
+        +first_chat: bool
+        +create_time: datetime
+        +finish_time: datetime
+        +create_by: int
+        +datasource: int
+        +engine_type: str
+        +question: str
+        +sql_answer: str
+        +sql: str
+        +sql_exec_result: str
+        +data: str
+        +chart_answer: str
+        +chart: str
+        +analysis: str
+        +predict: str
+        +predict_data: str
+        +recommended_question_answer: str
+        +recommended_question: str
+        +datasource_select_answer: str
+        +finish: bool
+        +error: str
+        +analysis_record_id: int
+        +predict_record_id: int
+    }
+
+    %% 聊天日志类
+    class ChatLog {
+        +id: int
+        +type: TypeEnum
+        +operate: OperationEnum
+        +pid: int
+        +ai_modal_id: int
+        +base_modal: str
+        +messages: list[dict]
+        +reasoning_content: str
+        +start_time: datetime
+        +finish_time: datetime
+        +token_usage: dict
+    }
+
+    %% 数据源类
+    class CoreDatasource {
+        +id: int
+        +oid: int
+        +name: str
+        +description: str
+        +type: str
+        +connection: dict
+        +host: str
+        +port: int
+        +username: str
+        +password: str
+        +database: str
+        +schema: str
+        +table: str
+        +status: int
+        +create_time: datetime
+        +update_time: datetime
+        +create_by: int
+        +update_by: int
+    }
+
+    %% LLM 基类和实现
+    class BaseLLM {
+        <<abstract>>
+        #config: LLMConfig
+        #_llm: BaseChatModel
+
+        +__init__(config: LLMConfig)
+        +_init_llm()* BaseChatModel
+        +llm: BaseChatModel
+    }
+
+    class OpenAILLM {
+        +_init_llm() BaseChatModel
+    }
+
+    class OpenAIAzureLLM {
+        +_init_llm() BaseChatModel
+    }
+
+    class OpenAIvLLM {
+        +_init_llm() VLLMOpenAI
+    }
+
+    %% 辅助类
+    class CurrentUser {
+        +oid: int
+        +username: str
+        +language: str
+        +role: str
+    }
+
+    class CurrentAssistant {
+        +id: int
+        +name: str
+        +type: int
+        +certificate: str
+        +online: bool
+    }
+
+    %% 枚举类
+    class OperationEnum {
+        <<enumeration>>
+        GENERATE_SQL
+        GENERATE_CHART
+        ANALYSIS
+        PREDICT_DATA
+        GENERATE_RECOMMENDED_QUESTIONS
+        GENERATE_SQL_WITH_PERMISSIONS
+        CHOOSE_DATASOURCE
+        GENERATE_DYNAMIC_SQL
+    }
+
+    class ChatFinishStep {
+        <<enumeration>>
+        GENERATE_SQL
+        QUERY_DATA
+        GENERATE_CHART
+    }
+
+    class TypeEnum {
+        <<enumeration>>
+        CHAT
+    }
+
+    %% 工厂类
+    class LLMFactory {
+        +create_llm(config: LLMConfig) BaseLLM
+    }
+
+    %% 关系定义
+    LLMService --> LLMConfig : uses
+    LLMService --> ChatQuestion : contains
+    LLMService --> ChatRecord : manages
+    LLMService --> CoreDatasource : uses
+    LLMService --> BaseChatModel : uses
+    LLMService --> CurrentUser : depends on
+    LLMService --> CurrentAssistant : depends on
+    LLMService --> ChatLog : manages
+    LLMService --> OperationEnum : uses
+    LLMService --> ChatFinishStep : uses
+
+    ChatQuestion --|> AiModelQuestion : extends
+
+    LLMFactory --> BaseLLM : creates
+    BaseLLM <|-- OpenAILLM : implements
+    BaseLLM <|-- OpenAIAzureLLM : implements
+    BaseLLM <|-- OpenAIvLLM : implements
+    BaseLLM --> LLMConfig : uses
+
+    AiModelQuestion --> LLMConfig : references
+
+    ChatRecord --> ChatLog : has many
+    ChatLog --> OperationEnum : uses
+    ChatLog --> TypeEnum : uses

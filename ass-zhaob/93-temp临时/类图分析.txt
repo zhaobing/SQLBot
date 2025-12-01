@@ -1,0 +1,309 @@
+跳转到主内容
+SQLBOT-uml
+Large block will not be editable or searchable to not slow down the app, please use another editor to edit this block.
+现在我来为您绘制SQLBot后端主要类的UML图。我将分别绘制不同模块的UML图。
+
+
+数据源模块类 UML 图
+  classDiagram
+      class CoreDatasource {
+          +int id
+          +str name
+          +str description
+          +str type
+          +str type_name
+          +str configuration
+          +datetime create_time
+          +int create_by
+          +str status
+          +str num
+          +int oid
+          +List table_relation
+          +str embedding
+      }
+
+      class CoreTable {
+          +int id
+          +int ds_id
+          +bool checked
+          +str table_name
+          +str table_comment
+          +str custom_comment
+          +str embedding
+      }
+
+      class CoreField {
+          +int id
+          +int ds_id
+          +int table_id
+          +bool checked
+          +str field_name
+          +str field_type
+          +str field_comment
+          +str custom_comment
+          +int field_index
+      }
+
+      class CorePermission {
+          +int id
+          +int oid
+          +int datasource_id
+          +str name
+          +str privilege_type
+          +str privilege_value
+          +datetime create_time
+          +datetime update_time
+          +int create_by
+          +int update_by
+      }
+
+      class CoreRowPermission {
+          +int id
+          +int oid
+          +int datasource_id
+          +str name
+          +str expression
+          +datetime create_time
+          +datetime update_time
+          +int create_by
+          +int update_by
+      }
+
+      CoreDatasource "1" -- "0.." CoreTable : ds_id >
+      CoreTable "1" -- "0.." CoreField : table_id >
+      CoreDatasource "1" -- "0.." CoreField : ds_id >
+      CoreDatasource "1" -- "0.." CorePermission : datasource_id >
+      CoreDatasource "1" -- "0.." CoreRowPermission : datasource_id >
+
+      CoreDatasource "0.." -- "1" UserModel : create_by >
+
+      note for CoreDatasource "数据源实体：存储数据库连接配置"
+      note for CoreTable "表实体：存储数据源中的表信息"
+      note for CoreField "字段实体：存储表中的字段信息"
+      note for CorePermission "权限实体：列级权限控制"
+      note for CoreRowPermission "行权限实体：行级权限控制"
+
+术语和数据训练模块 UML 图
+  classDiagram
+      class Terminology {
+          +int id
+          +int oid
+          +int pid
+          +datetime create_time
+          +str word
+          +str description
+          +VECTOR embedding
+          +bool specific_ds
+          +list[int] datasource_ids
+      }
+
+      class DataTraining {
+          +int id
+          +int oid
+          +int datasource
+          +datetime create_time
+          +str question
+          +str description
+          +VECTOR embedding
+      }
+
+      class CoreDashboard {
+          +str id
+          +str name
+          +str pid
+          +str workspace_id
+          +str org_id
+          +int level
+          +str node_type
+          +str type
+          +str canvas_style_data
+          +str component_data
+          +str canvas_view_info
+          +int mobile_layout
+          +int status
+          +int self_watermark_status
+          +int sort
+          +int create_time
+          +str create_by
+          +int update_time
+          +str update_by
+          +str remark
+          +str source
+          +int delete_flag
+          +int delete_time
+          +str delete_by
+          +int version
+          +str content_id
+          +str check_version
+      }
+
+      Terminology "0.." -- "0.." CoreDatasource : datasource_ids >
+      DataTraining "0..1" -- "1" CoreDatasource : datasource >
+
+      Terminology "0.." -- "1" WorkspaceModel : oid >
+      DataTraining "0.." -- "1" WorkspaceModel : oid >
+      CoreDashboard "0..*" -- "1" WorkspaceModel : org_id >
+
+      note for Terminology "术语实体：领域专业词汇管理"
+      note for DataTraining "数据训练实体：训练数据管理"
+      note for CoreDashboard "仪表板实体：数据可视化配置"
+
+整体架构 UML 图
+  classDiagram
+      direction TB
+
+      class SnowflakeBase {
+          +Optional[int] id
+      }
+
+      class UserModel {
+          +str account
+          +str name
+          +int oid
+      }
+
+      class WorkspaceModel {
+          +str name
+      }
+
+      class AssistantModel {
+          +str name
+          +str domain
+      }
+
+      class Chat {
+          +int oid
+          +int create_by
+          +int datasource
+          +str brief
+      }
+
+      class ChatRecord {
+          +int chat_id
+          +int create_by
+          +str question
+          +str sql
+          +str chart
+      }
+
+      class CoreDatasource {
+          +int oid
+          +str name
+          +str type
+          +str configuration
+      }
+
+      class CoreTable {
+          +int ds_id
+          +str table_name
+      }
+
+      class CoreField {
+          +int table_id
+          +str field_name
+          +str field_type
+      }
+
+      class AiModelDetail {
+          +str name
+          +int model_type
+          +str base_model
+      }
+
+      class Terminology {
+          +int oid
+          +str word
+          +VECTOR embedding
+      }
+
+      class DataTraining {
+          +int oid
+          +str question
+          +VECTOR embedding
+      }
+
+      class CoreDashboard {
+          +str org_id
+          +str name
+          +str component_data
+      }
+
+      %% 继承关系
+      UserModel --|> SnowflakeBase
+      WorkspaceModel --|> SnowflakeBase
+      AssistantModel --|> SnowflakeBase
+
+      %% 主要关联关系
+      UserModel "1" -- "0.." UserWsModel : uid >
+      WorkspaceModel "1" -- "0.." UserWsModel : oid >
+
+      UserModel "1" -- "0.." Chat : create_by >
+      Chat "1" -- "0.." ChatRecord : chat_id >
+      UserModel "1" -- "0.." ChatRecord : create_by >
+
+      CoreDatasource "1" -- "0.." CoreTable : ds_id >
+      CoreTable "1" -- "0.." CoreField : table_id >
+
+      Chat "0.." -- "1" CoreDatasource : datasource >
+      ChatRecord "0.." -- "1" CoreDatasource : datasource >
+
+      ChatRecord "0.." -- "1" AiModelDetail : ai_modal_id >
+
+      WorkspaceModel "1" -- "0.." Terminology : oid >
+      WorkspaceModel "1" -- "0.." DataTraining : oid >
+      WorkspaceModel "1" -- "0..*" CoreDashboard : org_id >
+
+      note for SnowflakeBase "雪花算法基类：n全局唯一ID生成"
+      note for UserModel "用户模型：n系统用户管理"
+      note for WorkspaceModel "工作区模型：n组织级别隔离"
+      note for Chat "聊天模型：n对话会话管理"
+      note for CoreDatasource "数据源模型：n多数据库支持"
+      note for AiModelDetail "AI模型：nLLM集成管理"
+      note for Terminology "术语模型：n领域词汇管理"
+      note for DataTraining "数据训练：n训练数据管理"
+
+      note "核心架构特点:n1. 基于雪花算法的ID生成n2. 组织级别(oid)的数据隔离n3. 多数据源支持的架构n4. AI集成和向量化支持n5. 完整的权限控制系统"
+
+⏺ UML图总结
+
+  我已经为SQLBot后端的主要类绘制了完整的UML图，包括：
+
+基础模型类UML图
+展示了SnowflakeBase基类的设计
+使用雪花算法生成全局唯一ID
+作为所有业务模型的基础类
+系统模块类UML图
+UserModel: 用户管理
+WorkspaceModel: 工作区管理
+AssistantModel: AI助手配置
+UserWsModel: 用户工作区多对多关联
+AiModelDetail: LLM模型配置
+聊天模块类UML图
+Chat: 聊天会话实体
+ChatRecord: 聊天记录和结果
+ChatLog: AI操作日志
+AiModelQuestion: 提示词模板构建器
+数据源模块类UML图
+CoreDatasource: 数据源连接配置
+CoreTable: 数据库表信息
+CoreField: 表字段信息
+CorePermission: 列级权限控制
+CoreRowPermission: 行级权限控制
+术语和数据训练模块UML图
+Terminology: 领域术语管理
+DataTraining: 训练数据管理
+CoreDashboard: 仪表板配置
+整体架构UML图
+展示所有核心模块之间的关系
+突出组织级别数据隔离（oid字段）
+展示多数据源架构和AI集成
+
+关键设计特点
+
+混合ID策略: 业务模型使用雪花算法ID，核心数据使用自增ID
+组织隔离: 通过oid字段实现多租户架构
+向量嵌入: 支持PostgreSQL VECTOR类型进行AI语义搜索
+灵活配置: 大量使用JSONB字段存储复杂数据结构
+权限控制: 完整的行级和列级权限管理体系
+AI集成: 完整的LLM模型管理和提示词工程
+这个架构展现了一个现代化企业级智能数据查询系统的完整设计，具有良好的可扩展性和维护性。
