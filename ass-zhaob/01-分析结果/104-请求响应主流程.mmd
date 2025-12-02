@@ -1,0 +1,66 @@
+flowchart TD
+    A[接收 POST /question 请求] --> B[创建 LLMService 实例]
+    B --> C[初始化聊天记录]
+    C --> D[异步执行任务 run_task_async]
+
+    D --> E[检查数据源是否存在]
+    E --> F{数据源为空?}
+    F -->|是| G[选择数据源]
+    F -->|否| H[验证历史数据源]
+
+    G --> I[调用 LLM 选择数据源]
+    I --> J[保存数据源配置]
+    J --> K[生成数据源 schema]
+
+    H --> K
+    K --> L[检查数据库连接]
+    L --> M{连接成功?}
+    M -->|否| N[返回连接错误]
+    M -->|是| O[生成 SQL 查询]
+
+    O --> P[调用 LLM 生成 SQL]
+    P --> Q[解析并验证 SQL]
+    Q --> R{需要权限过滤?}
+    R -->|是| S[生成权限过滤 SQL]
+    R -->|否| T[保存原始 SQL]
+
+    S --> U[保存过滤后的 SQL]
+    U --> V[执行 SQL 查询]
+    T --> V
+
+    V --> W{执行成功?}
+    W -->|否| X[返回执行错误]
+    W -->|是| Y[保存查询结果]
+
+    Y --> Z{是否需要图表?}
+    Z -->|否| AA[返回完成标识]
+    Z -->|是| BB[生成图表配置]
+
+    BB --> CC[调用 LLM 生成图表]
+    CC --> DD[解析图表配置]
+    DD --> EE{图表类型非表格?}
+    EE -->|是| FF[生成图表图片]
+    EE -->|否| GG[保存表格配置]
+
+    FF --> GG
+    GG --> HH[返回完成标识]
+    AA --> HH
+
+    N --> II[返回错误流]
+    X --> II
+    HH --> JJ[流式响应完成]
+    II --> JJ
+
+    subgraph "流式响应"
+        KK[await_result 方法]
+        LL[检查任务状态]
+        MM[从 chunk_list 获取数据块]
+        NN[格式化为 SSE 格式]
+        OO[发送给客户端]
+    end
+
+    JJ --> KK
+    KK --> LL
+    LL --> MM
+    MM --> NN
+    NN --> OO
