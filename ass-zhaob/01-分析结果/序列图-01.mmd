@@ -1,0 +1,131 @@
+sequenceDiagram
+    participant Client as 客户端
+    participant API as FastAPI<br/>stream_sql()
+    participant LLMService as LLMService
+    participant DB as 数据库
+    participant LLM as AI模型
+    participant ThreadPool as 线程池
+
+    Client->>API: POST /chat/question<br/>ChatQuestion{question, chat_id}
+
+    Note over API: 创建LLMService实例
+    API->>LLMService: create(session, user, question)
+    LLMService->>DB: 查询Chat记录
+    DB-->>LLMService: 返回Chat对象
+    LLMService->>DB: 查询数据源
+    DB-->>LLMService: 返回数据源配置
+    LLMService->>LLM: 创建LLM实例
+    LLMService-->>API: LLMService实例
+
+    Note over API: 初始化聊天记录
+    API->>LLMService: init_record(session)
+    LLMService->>DB: 保存ChatRecord
+    DB-->>LLMService: 返回记录ID
+    LLMService-->>API: 记录对象
+
+    Note over API: 异步启动任务
+    API->>ThreadPool: submit(run_task_async)
+    ThreadPool-->>API: 返回Future对象
+    API->>LLMService: await_result()
+
+    Note over LLMService: 开始执行任务
+    LLMService->>DB: 获取历史记录
+    DB-->>LLMService: 返回历史数据
+
+    alt 数据源为空
+        LLMService->>LLM: 选择数据源请求
+        LLM-->>LLMService: 返回数据源选择结果
+        LLMService->>DB: 保存数据源配置
+    else 数据源已存在
+        LLMService->>DB: 验证数据源有效性
+        DB-->>LLMService: 验证结果
+    end
+
+    LLMService->>DB: 检查数据库连接
+    DB-->>LLMService: 连接状态
+
+    Note over LLMService: 生成SQL查询
+    LLMService->>LLM: 生成SQL请求<br/>(messages + system prompt)
+    LLM-->>LLMService: 流式返回SQL内容
+
+    loop 流式SQL生成
+        LLMService-->>API: chunk(content, reasoning_content)
+        API->>Client: data: {type: sql-result, content}
+    end
+
+    Note over LLMService: 处理权限过滤
+    alt 需要权限过滤
+        LLMService->>LLM: 生成过滤SQL请求
+        LLM-->>LLMService: 过滤后的SQL
+    end
+
+    LLMService->>LLMService: 解析并验证SQL
+    LLMService->>DB: 保存SQL到记录
+
+    Note over LLMService: 执行SQL查询
+    LLMService->>DB: 执行SQL查询
+    DB-->>LLMService: 返回查询结果
+    LLMService->>DB: 保存查询结果
+    LLMService-->>API: chunk(type: sql-data)
+    API->>Client: data: {type: sql-data, content: execute-success}
+
+    Note over LLMService: 生成图表
+    LLMService->>LLM: 生成图表请求<br/>(数据 + 图表类型)
+    LLM-->>LLMService: 流式返回图表配置
+
+    loop 流式图表生成
+        LLMService-->>API: chunk(content, reasoning_content)
+        API->>Client: data: {type: chart-result, content}
+    end
+
+    LLMService->>DB: 保存图表配置
+
+    alt 图表类型非表格
+        LLMService->>LLMService: 生成图表图片请求
+        Note over LLMService: 调用图片生成服务
+        LLMService-->>API: chunk(type: chart, image_url)
+        API->>Client: data: {type: chart, content: chart_config}
+    else 表格类型
+        LLMService-->>API: chunk(type: chart)
+        API->>Client: data: {type: chart, content: table_config}
+    end
+
+    LLMService->>DB: 标记记录完成
+    LLMService-->>API: chunk(type: finish)
+    API->>Client: data: {type: finish}
+
+    Note over API: 持续检查任务状态
+    loop 检查任务
+        API->>LLMService: is_running()
+        alt 任务运行中
+            LLMService-->>API: true
+            API->>LLMService: pop_chunk()
+            alt 有数据块
+                LLMService-->>API: chunk
+                API->>Client: data: {chunk_data}
+            else 无数据块
+                Note over API: 等待
+            end
+        else 任务完成
+            LLMService-->>API: false
+            Note over API: 获取剩余数据块
+            loop 处理剩余数据
+                API->>LLMService: pop_chunk()
+                alt 有数据
+                    LLMService-->>API: chunk
+                    API->>Client: data: {chunk_data}
+                else 无更多数据
+                    break
+                end
+            end
+        end
+    end
+
+    Note over API: 异常处理
+    alt 发生异常
+        LLMService->>DB: 保存错误信息
+        LLMService-->>API: chunk(type: error)
+        API->>Client: data: {type: error, content: error_msg}
+    end
+
+    Client-->>API: 连接关闭

@@ -1,0 +1,195 @@
+flowchart TD
+    subgraph "客户端层"
+        Client[Vue 3 前端应用]
+        MCP_Client[MCP 客户端]
+    end
+
+    subgraph "API 网关层"
+        FastAPI[FastAPI 主应用<br/>Port: 8000]
+        MCP_Server[FastAPI MCP 服务器<br/>Port: 8001]
+    end
+
+    subgraph "中间件层"
+        Auth[认证中间件<br/>TokenMiddleware]
+        CORS[CORS 中间件]
+        Response[响应中间件<br/>ResponseMiddleware]
+        Exception[异常处理器<br/>exception_handler]
+    end
+
+    subgraph "API 路由层"
+        API_Router[API 路由器<br/>/api/v1]
+
+        subgraph "系统管理模块"
+            Login[登录认证<br/>/login]
+            User[用户管理<br/>/user]
+            Workspace[工作空间<br/>/workspace]
+            Assistant[AI助手<br/>/assistant]
+            AI_Model[AI模型管理<br/>/aimodel]
+        end
+
+        subgraph "数据管理模块"
+            DataSource[数据源管理<br/>/datasource]
+            Table_Relation[表关系<br/>/table_relation]
+            Terminology[术语管理<br/>/terminology]
+            Data_Training[训练数据<br/>/data_training]
+        end
+
+        subgraph "核心功能模块"
+            Chat[对话问答<br/>/chat]
+            Dashboard[仪表板<br/>/dashboard]
+            MCP_API[MCP API<br/>/mcp]
+        end
+    end
+
+    subgraph "业务逻辑层"
+        subgraph "聊天服务"
+            Chat_CRUD[聊天 CRUD 操作]
+            LLM_Service[LLM 服务<br/>SQL生成/图表生成]
+            Chat_Record[聊天记录管理]
+        end
+
+        subgraph "数据源服务"
+            DS_CRUD[数据源 CRUD]
+            DS_Conn[数据源连接器]
+            DB_Schema[数据库 Schema]
+            Permission[权限过滤]
+        end
+
+        subgraph "AI模型服务"
+            Model_Factory[模型工厂<br/>LLMFactory]
+            Model_Config[模型配置]
+            Embedding[向量化服务]
+            Prompt_Template[提示词模板]
+        end
+
+        subgraph "系统服务"
+            User_Mgmt[用户管理]
+            Workspace_Mgmt[工作空间管理]
+            Assistant_Mgmt[AI助手管理]
+        end
+    end
+
+    subgraph "数据访问层"
+        subgraph "ORM 层"
+            SQLModel[SQLModel<br/>SQLAlchemy + Pydantic]
+            Session_Maker[会话管理器<br/>scoped_session]
+        end
+
+        subgraph "数据库连接"
+            PostgreSQL[(PostgreSQL<br/>主数据库 + pgvector)]
+            MySQL[(MySQL)]
+            Oracle[(Oracle)]
+            SQLServer[(SQL Server)]
+            ClickHouse[(ClickHouse)]
+            Redshift[(Redshift)]
+            Elasticsearch[(Elasticsearch)]
+        end
+    end
+
+    subgraph "外部服务"
+        subgraph "LLM 提供商"
+            OpenAI[OpenAI GPT]
+            Azure[Azure OpenAI]
+            VLLM[VLLM]
+            Tongyi[阿里通义]
+        end
+
+        subgraph "缓存服务"
+            Redis_Cache[(Redis 缓存)]
+        end
+
+        subgraph "文件存储"
+            Excel_Storage[Excel 文件存储]
+            Image_Storage[图片存储]
+            Log_Storage[日志存储]
+        end
+    end
+
+    subgraph "基础设施层"
+        subgraph "配置管理"
+            Core_Config[核心配置<br/>settings]
+            Environment[环境变量]
+            License[许可证管理]
+        end
+
+        subgraph "工具组件"
+            Utils[通用工具]
+            Logger[日志系统<br/>loguru]
+            Error_Handler[错误处理]
+            Validator[数据验证]
+        end
+
+        subgraph "任务调度"
+            ThreadPool[线程池<br/>ThreadPoolExecutor]
+            Async_Tasks[异步任务]
+            Background_Jobs[后台任务]
+        end
+    end
+
+    %% 连接关系
+    Client --> FastAPI
+    MCP_Client --> MCP_Server
+
+    FastAPI --> Auth
+    Auth --> CORS
+    CORS --> Response
+    Response --> Exception
+
+    Exception --> API_Router
+    API_Router --> Login
+    API_Router --> User
+    API_Router --> Workspace
+    API_Router --> Assistant
+    API_Router --> AI_Model
+    API_Router --> DataSource
+    API_Router --> Table_Relation
+    API_Router --> Terminology
+    API_Router --> Data_Training
+    API_Router --> Chat
+    API_Router --> Dashboard
+    API_Router --> MCP_API
+
+    Chat --> Chat_CRUD
+    Chat --> LLM_Service
+    Chat --> Chat_Record
+
+    DataSource --> DS_CRUD
+    DataSource --> DS_Conn
+    DataSource --> DB_Schema
+    DataSource --> Permission
+
+    AI_Model --> Model_Factory
+    AI_Model --> Model_Config
+    AI_Model --> Embedding
+    AI_Model --> Prompt_Template
+
+    Chat_CRUD --> SQLModel
+    LLM_Service --> Model_Factory
+    DS_CRUD --> SQLModel
+    DS_Conn --> PostgreSQL
+    DS_Conn --> MySQL
+    DS_Conn --> Oracle
+    DS_Conn --> SQLServer
+    DS_Conn --> ClickHouse
+    DS_Conn --> Redshift
+    DS_Conn --> Elasticsearch
+
+    Model_Factory --> OpenAI
+    Model_Factory --> Azure
+    Model_Factory --> VLLM
+    Model_Factory --> Tongyi
+
+    Embedding --> Redis_Cache
+    SQLModel --> Session_Maker
+    Session_Maker --> PostgreSQL
+
+    LLM_Service --> ThreadPool
+    ThreadPool --> Async_Tasks
+    Async_Tasks --> Background_Jobs
+
+    Core_Config --> Environment
+    Utils --> Logger
+    Utils --> Error_Handler
+    Utils --> Validator
+
+    Image_Storage --> MCP_Server
